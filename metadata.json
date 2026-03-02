@@ -1,0 +1,5 @@
+{
+  "name": "HealthTrack Online",
+  "description": "A simple online health monitoring application to track blood pressure, blood sugar, oxygen saturation, pulse, and medications. Shared access via Supabase.",
+  "requestFramePermissions": []
+}
