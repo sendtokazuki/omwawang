@@ -17,8 +17,23 @@ export function RecordForm({ onSuccess }: RecordFormProps) {
     saturation: '',
     pulse: '',
     medications: '',
-    recorded_at: new Date().toISOString().slice(0, 16),
+    recorded_at: '',
   });
+
+  // Set current time when modal opens
+  React.useEffect(() => {
+    if (isOpen) {
+      const now = new Date();
+      // Adjust for local timezone offset to get YYYY-MM-DDTHH:mm format for input
+      const offset = now.getTimezoneOffset() * 60000;
+      const localISOTime = new Date(now.getTime() - offset).toISOString().slice(0, 16);
+      
+      setFormData(prev => ({
+        ...prev,
+        recorded_at: localISOTime
+      }));
+    }
+  }, [isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

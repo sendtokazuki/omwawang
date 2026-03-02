@@ -3,12 +3,13 @@ import { supabase, HealthRecord } from './supabase';
 import { RecordForm } from './components/RecordForm';
 import { HistoryList } from './components/HistoryList';
 import { HealthCharts } from './components/HealthCharts';
+import { MedicationManager } from './components/MedicationManager';
 import { format, subDays, startOfDay, endOfDay } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
-import { Calendar, ChevronLeft, ChevronRight, LayoutDashboard, History as HistoryIcon, Activity, Share2 } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, LayoutDashboard, History as HistoryIcon, Activity, Share2, Pill } from 'lucide-react';
 import { cn } from './lib/utils';
 
-type ViewMode = 'dashboard' | 'history';
+type ViewMode = 'dashboard' | 'history' | 'meds';
 type Period = 'day' | 'week';
 
 export default function App() {
@@ -145,15 +146,17 @@ export default function App() {
           <div className="space-y-8">
             {viewMode === 'dashboard' ? (
               <HealthCharts records={records} />
+            ) : viewMode === 'history' ? (
+              <HistoryList records={records} onDelete={fetchRecords} />
             ) : (
-              <HistoryList records={records} />
+              <MedicationManager />
             )}
           </div>
         )}
       </main>
 
       {/* Navigation Bar */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 px-6 py-3 flex justify-center gap-12 z-40">
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 px-4 py-3 flex justify-around items-center z-40">
         <button 
           onClick={() => setViewMode('dashboard')}
           className={cn(
@@ -173,6 +176,16 @@ export default function App() {
         >
           <HistoryIcon className="w-6 h-6" />
           <span className="text-[10px] font-bold uppercase tracking-widest">Riwayat</span>
+        </button>
+        <button 
+          onClick={() => setViewMode('meds')}
+          className={cn(
+            "flex flex-col items-center gap-1 transition-colors",
+            viewMode === 'meds' ? "text-indigo-600" : "text-slate-400"
+          )}
+        >
+          <Pill className="w-6 h-6" />
+          <span className="text-[10px] font-bold uppercase tracking-widest">Obat</span>
         </button>
       </nav>
 

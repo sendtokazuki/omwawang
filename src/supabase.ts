@@ -23,3 +23,12 @@ export type HealthRecord = {
   pulse: number | null;
   medications: string | null;
 };
+
+export type Medication = {
+  id: string;
+  name: string;
+  initial_stock: number;
+  unit: string;
+  dosage_per_day: number;
+  created_at: string;
+};
