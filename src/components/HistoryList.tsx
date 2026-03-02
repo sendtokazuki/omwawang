@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { format } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
-import { Activity, Droplets, Heart, Thermometer, Pill, Clock, Trash2, Loader2 } from 'lucide-react';
+import { Activity, Droplets, Heart, Thermometer, Pill, Clock, Trash2, Loader2, Share2 } from 'lucide-react';
 import { HealthRecord, supabase } from '../supabase';
 import { cn } from '../lib/utils';
 
@@ -12,6 +12,42 @@ interface HistoryListProps {
 
 export function HistoryList({ records, onDelete }: HistoryListProps) {
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const handleShare = (record: HealthRecord) => {
+    const dateStr = format(new Date(record.recorded_at), 'EEEE, dd MMM yyyy - HH:mm', { locale: localeId });
+    
+    let message = `*Laporan Kesehatan Pak Wawang*\n`;
+    message += `Waktu: ${dateStr}\n\n`;
+    
+    if (record.systolic) {
+      const status = record.systolic >= 140 || (record.diastolic && record.diastolic >= 90) ? "Tinggi" : 
+                     record.systolic >= 120 || (record.diastolic && record.diastolic >= 80) ? "Pre-Hipertensi" : "Normal";
+      message += `• Tensi: ${record.systolic}/${record.diastolic} mmHg (${status})\n`;
+    }
+    
+    if (record.blood_sugar) {
+      const status = record.blood_sugar >= 140 ? "Tinggi" : record.blood_sugar >= 100 ? "Pre-Diabetes" : "Normal";
+      message += `• Gula Darah: ${record.blood_sugar} mg/dL (${status})\n`;
+    }
+    
+    if (record.saturation) {
+      const status = record.saturation < 95 ? "Rendah" : "Normal";
+      message += `• Saturasi O2: ${record.saturation}% (${status})\n`;
+    }
+    
+    if (record.pulse) {
+      message += `• Nadi: ${record.pulse} BPM\n`;
+    }
+    
+    if (record.medications) {
+      message += `• Obat: ${record.medications}\n`;
+    }
+    
+    message += `\n_Dikirim via HealthTrack Online_`;
+    
+    const encodedMessage = encodeURIComponent(message);
+    window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
+  };
 
   const handleDelete = async (id: string) => {
     if (!window.confirm('Apakah Anda yakin ingin menghapus catatan ini?')) return;
@@ -56,17 +92,26 @@ export function HistoryList({ records, onDelete }: HistoryListProps) {
               </span>
             </div>
 
-            <button
-              onClick={() => handleDelete(record.id)}
-              disabled={deletingId === record.id}
-              className="p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all opacity-0 group-hover:opacity-100 disabled:opacity-50"
-            >
-              {deletingId === record.id ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Trash2 className="w-4 h-4" />
-              )}
-            </button>
+            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+              <button
+                onClick={() => handleShare(record)}
+                className="p-2 text-slate-300 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
+                title="Bagikan ke WhatsApp"
+              >
+                <Share2 className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => handleDelete(record.id)}
+                disabled={deletingId === record.id}
+                className="p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all disabled:opacity-50"
+              >
+                {deletingId === record.id ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Trash2 className="w-4 h-4" />
+                )}
+              </button>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
