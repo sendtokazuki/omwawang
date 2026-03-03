@@ -18,6 +18,7 @@ export function HealthCharts({ records }: HealthChartsProps) {
     blood_sugar: r.blood_sugar,
     saturation: r.saturation,
     pulse: r.pulse,
+    temperature: r.temperature,
   }));
 
   return (
@@ -59,6 +60,21 @@ export function HealthCharts({ records }: HealthChartsProps) {
         </div>
 
         <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+          <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-6">Suhu Tubuh (°C)</h3>
+          <div className="h-[200px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} />
+                <YAxis domain={[35, 42]} axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} />
+                <Tooltip contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} />
+                <Line type="monotone" dataKey="temperature" name="Suhu" stroke="#10b981" strokeWidth={3} dot={{ r: 4, fill: '#10b981' }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm md:col-span-2">
           <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-6">Saturasi & Nadi</h3>
           <div className="h-[200px] w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -69,7 +85,7 @@ export function HealthCharts({ records }: HealthChartsProps) {
                 <Tooltip contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} />
                 <Legend verticalAlign="top" height={36}/>
                 <Line type="monotone" dataKey="saturation" name="Saturasi" stroke="#3b82f6" strokeWidth={2} dot={{ r: 4, fill: '#3b82f6' }} />
-                <Line type="monotone" dataKey="pulse" name="Nadi" stroke="#10b981" strokeWidth={2} dot={{ r: 4, fill: '#10b981' }} />
+                <Line type="monotone" dataKey="pulse" name="Nadi" stroke="#6366f1" strokeWidth={2} dot={{ r: 4, fill: '#6366f1' }} />
               </LineChart>
             </ResponsiveContainer>
           </div>

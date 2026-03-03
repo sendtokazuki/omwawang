@@ -21,6 +21,7 @@ export type HealthRecord = {
   blood_sugar: number | null;
   saturation: number | null;
   pulse: number | null;
+  temperature: number | null;
   medications: string | null;
   timing: 'Sebelum Makan' | 'Sesudah Makan' | null;
 };

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { supabase } from '../supabase';
-import { Activity, Droplets, Heart, Thermometer, Pill, Plus, X } from 'lucide-react';
+import { Activity, Droplets, Heart, Thermometer, Pill, Plus, X, Wind } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 interface RecordFormProps {
@@ -16,6 +16,7 @@ export function RecordForm({ onSuccess }: RecordFormProps) {
     blood_sugar: '',
     saturation: '',
     pulse: '',
+    temperature: '',
     medications: '',
     recorded_at: '',
     timing: 'Sesudah Makan' as 'Sebelum Makan' | 'Sesudah Makan'
@@ -48,6 +49,7 @@ export function RecordForm({ onSuccess }: RecordFormProps) {
           blood_sugar: formData.blood_sugar ? parseInt(formData.blood_sugar) : null,
           saturation: formData.saturation ? parseInt(formData.saturation) : null,
           pulse: formData.pulse ? parseInt(formData.pulse) : null,
+          temperature: formData.temperature ? parseFloat(formData.temperature) : null,
           medications: formData.medications || null,
           timing: formData.timing,
           recorded_at: new Date(formData.recorded_at).toISOString(),
@@ -62,6 +64,7 @@ export function RecordForm({ onSuccess }: RecordFormProps) {
         blood_sugar: '',
         saturation: '',
         pulse: '',
+        temperature: '',
         medications: '',
         recorded_at: new Date().toISOString().slice(0, 16),
         timing: 'Sesudah Makan'
@@ -142,7 +145,7 @@ export function RecordForm({ onSuccess }: RecordFormProps) {
                 <div className="space-y-1">
                   <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Saturasi O2</label>
                   <div className="relative">
-                    <Thermometer className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <Wind className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                     <input
                       type="number"
                       placeholder="%"
@@ -156,6 +159,20 @@ export function RecordForm({ onSuccess }: RecordFormProps) {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Suhu (°C)</label>
+                  <div className="relative">
+                    <Thermometer className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <input
+                      type="number"
+                      step="0.1"
+                      placeholder="36.5"
+                      className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
+                      value={formData.temperature}
+                      onChange={(e) => setFormData({ ...formData, temperature: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1">
                   <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Nadi (BPM)</label>
                   <div className="relative">
                     <Heart className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -168,6 +185,9 @@ export function RecordForm({ onSuccess }: RecordFormProps) {
                     />
                   </div>
                 </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4">
                 <div className="space-y-1">
                   <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Waktu</label>
                   <input

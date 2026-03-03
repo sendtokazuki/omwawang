@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { format } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
-import { Activity, Droplets, Heart, Thermometer, Pill, Clock, Trash2, Loader2, Share2 } from 'lucide-react';
+import { Activity, Droplets, Heart, Thermometer, Pill, Clock, Trash2, Loader2, Share2, Wind } from 'lucide-react';
 import { HealthRecord, supabase } from '../supabase';
 import { cn } from '../lib/utils';
 
@@ -35,6 +35,11 @@ export function HistoryList({ records, onDelete }: HistoryListProps) {
     if (record.saturation) {
       const status = record.saturation < 95 ? "Rendah" : "Normal";
       message += `• Saturasi O2: ${record.saturation}% (${status})\n`;
+    }
+
+    if (record.temperature) {
+      const status = record.temperature >= 37.5 ? "Demam" : record.temperature < 36 ? "Hipotermia" : "Normal";
+      message += `• Suhu: ${record.temperature} °C (${status})\n`;
     }
     
     if (record.pulse) {
@@ -179,7 +184,7 @@ export function HistoryList({ records, onDelete }: HistoryListProps) {
                   "p-2 rounded-lg",
                   record.saturation < 95 ? "bg-rose-100" : "bg-blue-100"
                 )}>
-                  <Thermometer className={cn(
+                  <Wind className={cn(
                     "w-4 h-4",
                     record.saturation < 95 ? "text-rose-600" : "text-blue-600"
                   )} />
@@ -192,6 +197,29 @@ export function HistoryList({ records, onDelete }: HistoryListProps) {
                   )}>
                     {record.saturation}%
                     {record.saturation < 95 && <span className="ml-1 text-[8px] uppercase">! Rendah</span>}
+                  </p>
+                </div>
+              </div>
+            )}
+            {record.temperature && (
+              <div className="flex items-center gap-3">
+                <div className={cn(
+                  "p-2 rounded-lg",
+                  record.temperature >= 37.5 ? "bg-rose-100" : record.temperature < 36 ? "bg-amber-100" : "bg-emerald-100"
+                )}>
+                  <Thermometer className={cn(
+                    "w-4 h-4",
+                    record.temperature >= 37.5 ? "text-rose-600" : record.temperature < 36 ? "text-amber-600" : "text-emerald-600"
+                  )} />
+                </div>
+                <div>
+                  <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Suhu</p>
+                  <p className={cn(
+                    "text-sm font-bold",
+                    record.temperature >= 37.5 ? "text-rose-600" : "text-slate-700"
+                  )}>
+                    {record.temperature} <span className="text-[10px] font-normal text-slate-400">°C</span>
+                    {record.temperature >= 37.5 && <span className="ml-1 text-[8px] uppercase">! Demam</span>}
                   </p>
                 </div>
               </div>
