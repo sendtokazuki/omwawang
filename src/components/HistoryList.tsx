@@ -17,7 +17,9 @@ export function HistoryList({ records, onDelete }: HistoryListProps) {
     const dateStr = format(new Date(record.recorded_at), 'EEEE, dd MMM yyyy - HH:mm', { locale: localeId });
     
     let message = `*Laporan Kesehatan Pak Wawang*\n`;
-    message += `Waktu: ${dateStr}\n\n`;
+    message += `Waktu: ${dateStr}\n`;
+    if (record.timing) message += `Kondisi: ${record.timing}\n`;
+    message += `\n`;
     
     if (record.systolic) {
       const status = record.systolic >= 140 || (record.diastolic && record.diastolic >= 90) ? "Tinggi" : 
@@ -90,6 +92,14 @@ export function HistoryList({ records, onDelete }: HistoryListProps) {
               <span className="text-xs text-slate-400 font-medium">
                 {format(new Date(record.recorded_at), 'dd MMM yyyy', { locale: localeId })}
               </span>
+              {record.timing && (
+                <span className={cn(
+                  "text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-tighter",
+                  record.timing === 'Sesudah Makan' ? "bg-indigo-50 text-indigo-600" : "bg-amber-50 text-amber-600"
+                )}>
+                  {record.timing}
+                </span>
+              )}
             </div>
 
             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">

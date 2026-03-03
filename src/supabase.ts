@@ -22,6 +22,7 @@ export type HealthRecord = {
   saturation: number | null;
   pulse: number | null;
   medications: string | null;
+  timing: 'Sebelum Makan' | 'Sesudah Makan' | null;
 };
 
 export type Medication = {
@@ -30,5 +31,6 @@ export type Medication = {
   initial_stock: number;
   unit: string;
   dosage_per_day: number;
+  timing: 'Sebelum Makan' | 'Sesudah Makan';
   created_at: string;
 };

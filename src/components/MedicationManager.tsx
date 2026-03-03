@@ -12,7 +12,8 @@ export function MedicationManager() {
     name: '',
     initial_stock: '',
     unit: 'Tablet',
-    dosage_per_day: '1'
+    dosage_per_day: '1',
+    timing: 'Sesudah Makan' as 'Sebelum Makan' | 'Sesudah Makan'
   });
 
   const fetchMeds = async () => {
@@ -43,14 +44,15 @@ export function MedicationManager() {
         initial_stock: parseFloat(newMed.initial_stock),
         unit: newMed.unit,
         dosage_per_day: parseFloat(newMed.dosage_per_day),
+        timing: newMed.timing,
         created_at: new Date().toISOString() // Reset start date to now
       }]);
       if (error) throw error;
-      setNewMed({ name: '', initial_stock: '', unit: 'Tablet', dosage_per_day: '1' });
+      setNewMed({ name: '', initial_stock: '', unit: 'Tablet', dosage_per_day: '1', timing: 'Sesudah Makan' });
       setIsAdding(false);
       fetchMeds();
     } catch (err) {
-      alert('Gagal menambah obat. Pastikan tabel "medications" sudah dibuat dengan kolom "initial_stock".');
+      alert('Gagal menambah obat. Pastikan tabel "medications" sudah dibuat dengan kolom "initial_stock" dan "timing".');
     }
   };
 
@@ -116,17 +118,30 @@ export function MedicationManager() {
               </div>
             </div>
           </div>
-          <div className="space-y-1">
-            <label className="text-xs font-bold text-slate-500 uppercase">Dosis per Hari (Misal: 2x sehari = isi 2)</label>
-            <input 
-              required
-              type="number"
-              step="0.1"
-              className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
-              value={newMed.dosage_per_day}
-              onChange={e => setNewMed({...newMed, dosage_per_day: e.target.value})}
-              placeholder="2"
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-500 uppercase">Dosis per Hari</label>
+              <input 
+                required
+                type="number"
+                step="0.1"
+                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
+                value={newMed.dosage_per_day}
+                onChange={e => setNewMed({...newMed, dosage_per_day: e.target.value})}
+                placeholder="2"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-500 uppercase">Waktu Minum</label>
+              <select 
+                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
+                value={newMed.timing}
+                onChange={e => setNewMed({...newMed, timing: e.target.value as any})}
+              >
+                <option>Sesudah Makan</option>
+                <option>Sebelum Makan</option>
+              </select>
+            </div>
           </div>
           <p className="text-[10px] text-slate-400 italic">Menyimpan akan mereset hitungan sisa stok mulai dari hari ini.</p>
           <div className="flex gap-2">
@@ -160,7 +175,12 @@ export function MedicationManager() {
                     <Package className="w-6 h-6" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-slate-800">{med.name}</h3>
+                    <h3 className="font-bold text-slate-800 flex items-center gap-2">
+                      {med.name}
+                      <span className="text-[10px] font-medium px-2 py-0.5 bg-slate-100 text-slate-500 rounded-full">
+                        {med.timing}
+                      </span>
+                    </h3>
                     <div className="flex items-center gap-2 mt-1">
                       <span className={cn(
                         "text-lg font-black",
