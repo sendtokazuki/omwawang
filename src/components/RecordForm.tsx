@@ -83,7 +83,7 @@ export function RecordForm({ onSuccess }: RecordFormProps) {
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-8 right-8 w-14 h-14 bg-indigo-600 text-white rounded-full shadow-lg hover:bg-indigo-700 transition-all flex items-center justify-center z-50"
+        className="fixed bottom-24 right-6 w-14 h-14 bg-indigo-600 text-white rounded-full shadow-lg hover:bg-indigo-700 transition-all flex items-center justify-center z-50 md:bottom-8 md:right-8"
       >
         <Plus className="w-8 h-8" />
       </button>
