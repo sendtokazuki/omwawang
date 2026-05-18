@@ -12,26 +12,21 @@ export const supabase = createClient(
   supabaseAnonKey || 'placeholder'
 );
 
-export type HealthRecord = {
-  id: string;
-  created_at: string;
-  recorded_at: string;
-  systolic: number | null;
-  diastolic: number | null;
-  blood_sugar: number | null;
-  saturation: number | null;
-  pulse: number | null;
-  temperature: number | null;
-  medications: string | null;
-  timing: 'Sebelum Makan' | 'Sesudah Makan' | null;
-};
-
-export type Medication = {
+export type Vehicle = {
   id: string;
   name: string;
-  initial_stock: number;
-  unit: string;
-  dosage_per_day: number;
-  timing: 'Sebelum Makan' | 'Sesudah Makan';
+  plate_number: string | null;
+  current_odo: number;
+  last_oil_change_odo: number;
+  oil_change_interval: number;
   created_at: string;
+};
+
+export type OdoLog = {
+  id: string;
+  vehicle_id: string;
+  odo_reading: number;
+  recorded_at: string;
+  notes: string | null;
+  is_oil_change: boolean;
 };

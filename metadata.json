@@ -1,5 +1,8 @@
 {
-  "name": "HealthTrack Online",
-  "description": "A simple online health monitoring application to track blood pressure, blood sugar, oxygen saturation, pulse, and medications. Shared access via Supabase.",
-  "requestFramePermissions": []
+  "name": "OdoTrack Online",
+  "description": "A vehicle maintenance tracker to record odometer readings and remind you of oil changes. Built with Supabase.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
 }

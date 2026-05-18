@@ -1,55 +1,52 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { supabase, HealthRecord } from './supabase';
-import { RecordForm } from './components/RecordForm';
-import { HistoryList } from './components/HistoryList';
-import { HealthCharts } from './components/HealthCharts';
-import { MedicationManager } from './components/MedicationManager';
+import { supabase, Vehicle, OdoLog } from './supabase';
+import { OdoLogForm } from './components/OdoLogForm';
+import { LogHistory } from './components/LogHistory';
+import { MileageCharts } from './components/MileageCharts';
+import { VehicleManager } from './components/VehicleManager';
 import { format, subDays, startOfDay, endOfDay } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
-import { Calendar, ChevronLeft, ChevronRight, LayoutDashboard, History as HistoryIcon, Activity, Share2, Pill } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, LayoutDashboard, History as HistoryIcon, Activity, Share2, Car, Gauge } from 'lucide-react';
 import { cn } from './lib/utils';
 
-type ViewMode = 'dashboard' | 'history' | 'meds';
-type Period = 'day' | 'week';
+type ViewMode = 'dashboard' | 'history' | 'vehicles';
 
 export default function App() {
-  const [records, setRecords] = useState<HealthRecord[]>([]);
+  const [logs, setLogs] = useState<OdoLog[]>([]);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<ViewMode>('dashboard');
-  const [period, setPeriod] = useState<Period>('day');
   const [selectedDate, setSelectedDate] = useState(new Date());
 
-  const fetchRecords = useCallback(async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      let start, end;
-      if (period === 'day') {
-        start = startOfDay(selectedDate).toISOString();
-        end = endOfDay(selectedDate).toISOString();
-      } else {
-        start = startOfDay(subDays(selectedDate, 7)).toISOString();
-        end = endOfDay(selectedDate).toISOString();
-      }
+      // Fetch Vehicles
+      const { data: vData } = await supabase.from('vehicles').select('*');
+      setVehicles(vData || []);
+
+      // Fetch Logs for the selected month/period instead of just one day to show some history
+      // For history, we'll fetch more data.
+      const start = startOfDay(subDays(selectedDate, 30)).toISOString();
+      const end = endOfDay(selectedDate).toISOString();
 
       const { data, error } = await supabase
-        .from('health_records')
+        .from('odo_logs')
         .select('*')
-        .gte('recorded_at', start)
-        .lte('recorded_at', end)
         .order('recorded_at', { ascending: false });
 
       if (error) throw error;
-      setRecords(data || []);
+      setLogs(data || []);
     } catch (err) {
-      console.error('Error fetching records:', err);
+      console.error('Error fetching data:', err);
     } finally {
       setLoading(false);
     }
-  }, [selectedDate, period]);
+  }, [selectedDate]);
 
   useEffect(() => {
-    fetchRecords();
-  }, [fetchRecords]);
+    fetchData();
+  }, [fetchData]);
 
   const handlePrevDay = () => setSelectedDate(prev => subDays(prev, 1));
   const handleNextDay = () => setSelectedDate(prev => subDays(prev, -1));
@@ -57,8 +54,8 @@ export default function App() {
   const shareApp = () => {
     if (navigator.share) {
       navigator.share({
-        title: 'HealthTrack Online',
-        text: 'Pantau kesehatan keluarga secara online.',
+        title: 'OdoTrack Online',
+        text: 'Pantau perawatan kendaraan Anda secara online.',
         url: window.location.href,
       });
     } else {
@@ -73,10 +70,10 @@ export default function App() {
       <header className="bg-white border-b border-slate-100 sticky top-0 z-40">
         <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
-              <Activity className="w-5 h-5 text-white" />
+            <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center shadow-lg shadow-indigo-200">
+              <Gauge className="w-5 h-5 text-white" />
             </div>
-            <h1 className="font-bold text-lg text-slate-800 tracking-tight">HealthTrack</h1>
+            <h1 className="font-bold text-lg text-slate-800 tracking-tight">OdoTrack</h1>
           </div>
           <button 
             onClick={shareApp}
@@ -88,116 +85,98 @@ export default function App() {
       </header>
 
       <main className="max-w-4xl mx-auto px-4 py-6">
-        {/* Date Selector */}
-        <div className="space-y-4 mb-8">
-          <div className="flex items-center justify-between bg-white p-2 rounded-2xl border border-slate-100 shadow-sm">
-            <button 
-              onClick={handlePrevDay}
-              className="p-2 hover:bg-slate-50 rounded-xl transition-colors text-slate-400"
-            >
-              <ChevronLeft className="w-6 h-6" />
-            </button>
-            
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-indigo-500" />
-              <span className="font-bold text-slate-700">
-                {format(selectedDate, 'EEEE, dd MMMM yyyy', { locale: localeId })}
-              </span>
-            </div>
+        {/* Date Selector only for context, maybe dashboard doesn't need it as much but history might */}
+        {viewMode !== 'vehicles' && (
+          <div className="space-y-4 mb-8">
+            <div className="flex items-center justify-between bg-white p-2 rounded-2xl border border-slate-100 shadow-sm">
+              <button 
+                onClick={handlePrevDay}
+                className="p-2 hover:bg-slate-50 rounded-xl transition-colors text-slate-400"
+              >
+                <ChevronLeft className="w-6 h-6" />
+              </button>
+              
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-indigo-500" />
+                <span className="font-bold text-slate-700">
+                  {format(selectedDate, 'EEEE, dd MMMM yyyy', { locale: localeId })}
+                </span>
+              </div>
 
-            <button 
-              onClick={handleNextDay}
-              className="p-2 hover:bg-slate-50 rounded-xl transition-colors text-slate-400"
-            >
-              <ChevronRight className="w-6 h-6" />
-            </button>
+              <button 
+                onClick={handleNextDay}
+                className="p-2 hover:bg-slate-50 rounded-xl transition-colors text-slate-400"
+              >
+                <ChevronRight className="w-6 h-6" />
+              </button>
+            </div>
           </div>
-
-          {viewMode === 'dashboard' && (
-            <div className="flex gap-2 p-1 bg-slate-200/50 rounded-xl w-fit">
-              <button
-                onClick={() => setPeriod('day')}
-                className={cn(
-                  "px-4 py-1.5 rounded-lg text-xs font-bold transition-all",
-                  period === 'day' ? "bg-white text-indigo-600 shadow-sm" : "text-slate-500 hover:text-slate-700"
-                )}
-              >
-                Harian
-              </button>
-              <button
-                onClick={() => setPeriod('week')}
-                className={cn(
-                  "px-4 py-1.5 rounded-lg text-xs font-bold transition-all",
-                  period === 'week' ? "bg-white text-indigo-600 shadow-sm" : "text-slate-500 hover:text-slate-700"
-                )}
-              >
-                Mingguan
-              </button>
-            </div>
-          )}
-        </div>
+        )}
 
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4">
             <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
-            <p className="text-slate-400 font-medium">Memuat data...</p>
+            <p className="text-slate-400 font-medium">Memuat data kendaraan...</p>
           </div>
         ) : (
           <div className="space-y-8">
             {viewMode === 'dashboard' ? (
-              <HealthCharts records={records} />
+              <MileageCharts logs={logs} vehicles={vehicles} />
             ) : viewMode === 'history' ? (
-              <HistoryList records={records} onDelete={fetchRecords} />
+              <LogHistory logs={logs} vehicles={vehicles} onDelete={fetchData} />
             ) : (
-              <MedicationManager />
+              <VehicleManager />
             )}
           </div>
         )}
       </main>
 
       {/* Navigation Bar */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 px-4 py-3 flex justify-around items-center z-40">
+      <nav className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-md border-t border-slate-100 px-4 py-3 flex justify-around items-center z-40">
         <button 
           onClick={() => setViewMode('dashboard')}
           className={cn(
-            "flex flex-col items-center gap-1 transition-colors",
-            viewMode === 'dashboard' ? "text-indigo-600" : "text-slate-400"
+            "flex flex-col items-center gap-1 transition-colors px-4 py-1 rounded-2xl",
+            viewMode === 'dashboard' ? "text-indigo-600 bg-indigo-50" : "text-slate-400 hover:text-slate-600"
           )}
         >
           <LayoutDashboard className="w-6 h-6" />
-          <span className="text-[10px] font-bold uppercase tracking-widest">Ringkasan</span>
+          <span className="text-[10px] font-bold uppercase tracking-widest">Tren</span>
         </button>
         <button 
           onClick={() => setViewMode('history')}
           className={cn(
-            "flex flex-col items-center gap-1 transition-colors",
-            viewMode === 'history' ? "text-indigo-600" : "text-slate-400"
+            "flex flex-col items-center gap-1 transition-colors px-4 py-1 rounded-2xl",
+            viewMode === 'history' ? "text-indigo-600 bg-indigo-50" : "text-slate-400 hover:text-slate-600"
           )}
         >
           <HistoryIcon className="w-6 h-6" />
           <span className="text-[10px] font-bold uppercase tracking-widest">Riwayat</span>
         </button>
         <button 
-          onClick={() => setViewMode('meds')}
+          onClick={() => setViewMode('vehicles')}
           className={cn(
-            "flex flex-col items-center gap-1 transition-colors",
-            viewMode === 'meds' ? "text-indigo-600" : "text-slate-400"
+            "flex flex-col items-center gap-1 transition-colors px-4 py-1 rounded-2xl",
+            viewMode === 'vehicles' ? "text-indigo-600 bg-indigo-50" : "text-slate-400 hover:text-slate-600"
           )}
         >
-          <Pill className="w-6 h-6" />
-          <span className="text-[10px] font-bold uppercase tracking-widest">Obat</span>
+          <Car className="w-6 h-6" />
+          <span className="text-[10px] font-bold uppercase tracking-widest">Kendaraan</span>
         </button>
       </nav>
 
       {/* Floating Action Button */}
-      <RecordForm onSuccess={fetchRecords} />
+      <OdoLogForm onSuccess={fetchData} />
 
-      {/* Instructions for first-time users */}
-      {!loading && records.length === 0 && (
-        <div className="max-w-md mx-auto mt-12 p-6 bg-indigo-50 rounded-3xl border border-indigo-100 text-center">
-          <p className="text-indigo-900 font-medium mb-2">Belum ada data hari ini</p>
-          <p className="text-indigo-600 text-sm">
-            Klik tombol <span className="font-bold">+</span> di pojok kanan bawah untuk menambah catatan kesehatan baru.
+      {/* Empty State */}
+      {!loading && logs.length === 0 && viewMode !== 'vehicles' && (
+        <div className="max-w-md mx-auto mt-12 p-8 bg-white rounded-3xl border border-slate-100 text-center shadow-sm">
+          <div className="w-16 h-16 bg-slate-50 text-slate-300 rounded-full flex items-center justify-center mx-auto mb-4">
+             <Gauge className="w-8 h-8" />
+          </div>
+          <p className="text-slate-900 font-bold mb-2">Mulai Catat Perjalanan</p>
+          <p className="text-slate-400 text-sm leading-relaxed">
+            Klik tombol <span className="font-bold text-indigo-600">+</span> untuk mencatat odometer kendaraan Anda dan memantau jadwal ganti oli.
           </p>
         </div>
       )}
