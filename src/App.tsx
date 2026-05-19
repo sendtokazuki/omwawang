@@ -8,6 +8,7 @@ import { format, subDays, startOfDay, endOfDay } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
 import { Calendar, ChevronLeft, ChevronRight, LayoutDashboard, History as HistoryIcon, Activity, Share2, Car, Gauge } from 'lucide-react';
 import { cn } from './lib/utils';
+import { APP_VERSION } from './version';
 
 type ViewMode = 'dashboard' | 'history' | 'vehicles';
 
@@ -17,6 +18,36 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<ViewMode>('dashboard');
   const [selectedDate, setSelectedDate] = useState(new Date());
+
+  useEffect(() => {
+    const lastVersion = localStorage.getItem('app_version');
+    if (lastVersion && lastVersion !== APP_VERSION) {
+      // New version detected, clear caches and reload
+      const clearWork = async () => {
+        // Clear all except maybe some critical non-cache settings if they existed
+        localStorage.clear();
+        
+        // Clear service worker caches if available
+        if ('caches' in window) {
+          const cacheHeader = await caches.keys();
+          await Promise.all(cacheHeader.map(name => caches.delete(name)));
+        }
+
+        // Add cookies clearing
+        document.cookie.split(";").forEach((c) => {
+          document.cookie = c
+            .replace(/^ +/, "")
+            .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+        });
+
+        localStorage.setItem('app_version', APP_VERSION);
+        window.location.reload();
+      };
+      clearWork();
+    } else {
+      localStorage.setItem('app_version', APP_VERSION);
+    }
+  }, []);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -73,7 +104,10 @@ export default function App() {
             <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center shadow-lg shadow-indigo-200">
               <Gauge className="w-5 h-5 text-white" />
             </div>
-            <h1 className="font-bold text-lg text-slate-800 tracking-tight">OdoTrack</h1>
+            <div className="flex flex-col -gap-1">
+              <h1 className="font-bold text-lg text-slate-800 tracking-tight leading-none">OdoTrack</h1>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">v{APP_VERSION}</span>
+            </div>
           </div>
           <button 
             onClick={shareApp}

@@ -61,8 +61,13 @@ export function LogHistory({ logs, vehicles, onDelete }: LogHistoryProps) {
 
   return (
     <div className="space-y-4">
-      {logs.map((log) => {
+      {logs.map((log, index) => {
         const v = vehicles.find(veh => veh.id === log.vehicle_id);
+        
+        // Find the previous log for the SAME vehicle to calculate travel distance
+        const prevLogForVehicle = logs.slice(index + 1).find(l => l.vehicle_id === log.vehicle_id);
+        const distanceTraveled = prevLogForVehicle ? (log.odo_reading - prevLogForVehicle.odo_reading).toFixed(1) : null;
+
         return (
           <div key={log.id} className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow relative group">
             <div className="flex justify-between items-start mb-4">
@@ -106,20 +111,29 @@ export function LogHistory({ logs, vehicles, onDelete }: LogHistoryProps) {
               </div>
             </div>
 
-            <div className="flex items-center justify-between gap-4 bg-slate-50 p-4 rounded-2xl">
-               <div className="flex items-center gap-3">
-                  <div className="p-2 bg-white rounded-xl shadow-sm text-indigo-600">
-                     <Gauge className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Odometer</p>
-                    <p className="text-xl font-black text-slate-700">{log.odo_reading} <span className="text-xs font-normal text-slate-400">KM</span></p>
-                  </div>
+            <div className="flex flex-col gap-3 bg-slate-50 p-4 rounded-2xl">
+               <div className="flex items-center justify-between">
+                 <div className="flex items-center gap-3">
+                    <div className="p-2 bg-white rounded-xl shadow-sm text-indigo-600">
+                       <Gauge className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Odometer</p>
+                      <p className="text-xl font-black text-slate-700">{log.odo_reading} <span className="text-xs font-normal text-slate-400">KM</span></p>
+                    </div>
+                 </div>
+                 {log.is_oil_change && (
+                   <div className="flex items-center gap-2 bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-xl border border-emerald-200">
+                      <RefreshCw className="w-4 h-4" />
+                      <span className="text-[10px] font-black uppercase tracking-tighter">Ganti Oli</span>
+                   </div>
+                 )}
                </div>
-               {log.is_oil_change && (
-                 <div className="flex items-center gap-2 bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-xl border border-emerald-200">
-                    <RefreshCw className="w-4 h-4 animate-spin-slow" />
-                    <span className="text-[10px] font-black uppercase tracking-tighter">Ganti Oli</span>
+
+               {distanceTraveled !== null && (
+                 <div className="pt-3 border-t border-slate-200/50 flex items-center justify-between">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Jarak Perjalanan Ini</span>
+                    <span className="text-sm font-black text-indigo-600">+{distanceTraveled} KM</span>
                  </div>
                )}
             </div>

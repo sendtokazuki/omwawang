@@ -167,11 +167,11 @@ export function VehicleManager() {
                 <div className="grid grid-cols-2 gap-4 border-t border-slate-50 pt-4">
                    <div className="space-y-1">
                      <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Odometer Total</p>
-                     <p className="text-lg font-black text-slate-700">{v.current_odo} <span className="text-[10px] font-normal text-slate-400">KM</span></p>
+                     <p className="text-lg font-black text-slate-700">{v.current_odo.toFixed(1)} <span className="text-[10px] font-normal text-slate-400">KM</span></p>
                    </div>
                    <div className="space-y-1">
                      <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Jarak Sejak Oli</p>
-                     <p className="text-lg font-black text-slate-700">{distanceSinceLastOil} <span className="text-[10px] font-normal text-slate-400">KM</span></p>
+                     <p className="text-lg font-black text-slate-700">{distanceSinceLastOil.toFixed(1)} <span className="text-[10px] font-normal text-slate-400">KM</span></p>
                    </div>
                 </div>
 
@@ -191,7 +191,7 @@ export function VehicleManager() {
                       "text-xs font-black",
                       isLate ? "text-rose-600" : isCritical ? "text-amber-600" : "text-emerald-600"
                     )}>
-                      {isLate ? `Telat ${Math.abs(remaining)} KM!` : isCritical ? `Hampir Waktu! Sisa ${remaining} KM` : `Sisa ${remaining} KM lagi`}
+                      {isLate ? `Telat ${Math.abs(remaining).toFixed(1)} KM!` : isCritical ? `Hampir Waktu! Sisa ${remaining.toFixed(1)} KM` : `Sisa ${remaining.toFixed(1)} KM lagi`}
                     </p>
                   </div>
                 </div>

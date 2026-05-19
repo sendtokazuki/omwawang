@@ -8,7 +8,8 @@ import {
   Tooltip, 
   ResponsiveContainer, 
 } from 'recharts';
-import { format } from 'date-fns';
+import { format, differenceInDays } from 'date-fns';
+import { TrendingUp, Calendar, Hash } from 'lucide-react';
 import { OdoLog, Vehicle } from '../supabase';
 
 interface MileageChartsProps {
@@ -43,40 +44,83 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 export function MileageCharts({ logs, vehicles }: MileageChartsProps) {
   if (logs.length === 0) return null;
 
-  // Group logs by vehicle
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 pb-10">
       {vehicles.map(v => {
         const vehicleLogs = [...logs]
           .filter(l => l.vehicle_id === v.id)
-          .reverse()
-          .map(l => ({
-            label: format(new Date(l.recorded_at), 'dd/MM HH:mm'),
-            odo: l.odo_reading,
-            name: v.name
-          }));
+          .sort((a, b) => new Date(a.recorded_at).getTime() - new Date(b.recorded_at).getTime());
 
         if (vehicleLogs.length < 2) return null;
 
+        const earliest = vehicleLogs[0];
+        const latest = vehicleLogs[vehicleLogs.length - 1];
+        
+        const totalDistance = latest.odo_reading - earliest.odo_reading;
+        const totalDays = Math.max(1, differenceInDays(new Date(latest.recorded_at), new Date(earliest.recorded_at)));
+        
+        const avgDaily = (totalDistance / totalDays).toFixed(1);
+        const avgWeekly = (parseFloat(avgDaily) * 7).toFixed(1);
+        const avgMonthly = (parseFloat(avgDaily) * 30).toFixed(1);
+
+        const chartData = vehicleLogs.map(l => ({
+          label: format(new Date(l.recorded_at), 'dd/MM HH:mm'),
+          odo: l.odo_reading,
+          name: v.name
+        }));
+
         return (
-          <div key={v.id} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-            <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-6">Tren Jarak Tempuh: {v.name}</h3>
-            <div className="h-[250px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={vehicleLogs} margin={{ left: -20, right: 10, top: 10, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id={`colorOdo-${v.id}`} x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#6366f1" stopOpacity={0.1}/>
-                      <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} />
-                  <YAxis width={40} axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} domain={['dataMin - 100', 'dataMax + 100']} />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Area type="monotone" dataKey="odo" name="Jarak Tempuh" stroke="#6366f1" strokeWidth={3} fillOpacity={1} fill={`url(#colorOdo-${v.id})`} />
-                </AreaChart>
-              </ResponsiveContainer>
+          <div key={v.id} className="space-y-4">
+            <div className="flex items-baseline gap-2 mb-2">
+              <h3 className="text-lg font-black text-slate-800">{v.name}</h3>
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{v.plate_number}</span>
+            </div>
+
+            {/* Statistics Cards */}
+            <div className="grid grid-cols-3 gap-3">
+              <div className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm">
+                <div className="w-8 h-8 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center mb-2">
+                  <TrendingUp className="w-4 h-4" />
+                </div>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Rata-rata/Hari</p>
+                <p className="text-lg font-black text-slate-800">{avgDaily}<span className="text-[10px] font-normal text-slate-400 ml-0.5">KM</span></p>
+              </div>
+              <div className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm">
+                <div className="w-8 h-8 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center mb-2">
+                  <Calendar className="w-4 h-4" />
+                </div>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Rata-rata/Minggu</p>
+                <p className="text-lg font-black text-slate-800">{avgWeekly}<span className="text-[10px] font-normal text-slate-400 ml-0.5">KM</span></p>
+              </div>
+              <div className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm">
+                <div className="w-8 h-8 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center mb-2">
+                   <Hash className="w-4 h-4" />
+                </div>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Rata-rata/Bulan</p>
+                <p className="text-lg font-black text-slate-800">{avgMonthly}<span className="text-[10px] font-normal text-slate-400 ml-0.5">KM</span></p>
+              </div>
+            </div>
+
+            {/* Chart */}
+            <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+              <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-6">Grafik Tren Odometer</h3>
+              <div className="h-[250px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={chartData} margin={{ left: -20, right: 10, top: 10, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id={`colorOdo-${v.id}`} x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#6366f1" stopOpacity={0.1}/>
+                        <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} />
+                    <YAxis width={40} axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} domain={['dataMin - 100', 'dataMax + 100']} />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Area type="monotone" dataKey="odo" name="Odometer" stroke="#6366f1" strokeWidth={3} fillOpacity={1} fill={`url(#colorOdo-${v.id})`} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
             </div>
           </div>
         );
