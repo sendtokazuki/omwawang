@@ -14,18 +14,18 @@ export default defineConfig(({mode}) => {
         registerType: 'autoUpdate',
         includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
         manifest: {
-          name: 'HealthTrack Pak Wawang Online',
-          short_name: 'HealthTrack',
-          description: 'Aplikasi pencatat kesehatan harian online Pak Wawang',
+          name: 'OdoTrack Online',
+          short_name: 'OdoTrack',
+          description: 'Aplikasi pencatat odometer dan pengingat ganti oli kendaraan',
           theme_color: '#4f46e5',
           icons: [
             {
-              src: 'https://picsum.photos/seed/health/192/192',
+              src: 'https://picsum.photos/seed/vehicle/192/192',
               sizes: '192x192',
               type: 'image/png'
             },
             {
-              src: 'https://picsum.photos/seed/health/512/512',
+              src: 'https://picsum.photos/seed/vehicle/512/512',
               sizes: '512x512',
               type: 'image/png'
             }
