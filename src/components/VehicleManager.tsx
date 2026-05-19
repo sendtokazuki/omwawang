@@ -3,6 +3,17 @@ import { supabase, Vehicle } from '../supabase';
 import { Car, Plus, Trash2, Settings, AlertCircle, Loader2, RefreshCw, Gauge } from 'lucide-react';
 import { cn } from '../lib/utils';
 
+const OdoDisplay = ({ value, className }: { value: number, className?: string }) => {
+  const parts = value.toFixed(1).split('.');
+  return (
+    <p className={cn("font-black text-slate-700", className)}>
+      {parts[0]}
+      <span className="text-[0.6em] opacity-40 font-bold">.{parts[1]}</span>
+      <span className="text-[10px] font-normal text-slate-400 ml-1">KM</span>
+    </p>
+  );
+};
+
 export function VehicleManager() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
@@ -167,11 +178,11 @@ export function VehicleManager() {
                 <div className="grid grid-cols-2 gap-4 border-t border-slate-50 pt-4">
                    <div className="space-y-1">
                      <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Odometer Total</p>
-                     <p className="text-lg font-black text-slate-700">{v.current_odo.toFixed(1)} <span className="text-[10px] font-normal text-slate-400">KM</span></p>
+                     <OdoDisplay value={v.current_odo} className="text-lg" />
                    </div>
                    <div className="space-y-1">
                      <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Jarak Sejak Oli</p>
-                     <p className="text-lg font-black text-slate-700">{distanceSinceLastOil.toFixed(1)} <span className="text-[10px] font-normal text-slate-400">KM</span></p>
+                     <OdoDisplay value={distanceSinceLastOil} className="text-lg" />
                    </div>
                 </div>
 

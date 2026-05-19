@@ -11,6 +11,17 @@ interface LogHistoryProps {
   onDelete: () => void;
 }
 
+const OdoDisplay = ({ value, className }: { value: number, className?: string }) => {
+  const parts = value.toFixed(1).split('.');
+  return (
+    <div className={cn("font-black text-slate-700 inline-flex items-baseline", className)}>
+      <span>{parts[0]}</span>
+      <span className="text-[0.6em] opacity-40 font-bold ml-0.5">.{parts[1]}</span>
+      <span className="text-[10px] font-normal text-slate-400 ml-1 whitespace-nowrap">KM</span>
+    </div>
+  );
+};
+
 export function LogHistory({ logs, vehicles, onDelete }: LogHistoryProps) {
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
@@ -119,7 +130,7 @@ export function LogHistory({ logs, vehicles, onDelete }: LogHistoryProps) {
                     </div>
                     <div>
                       <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Odometer</p>
-                      <p className="text-xl font-black text-slate-700">{log.odo_reading} <span className="text-xs font-normal text-slate-400">KM</span></p>
+                      <OdoDisplay value={log.odo_reading} className="text-xl" />
                     </div>
                  </div>
                  {log.is_oil_change && (
@@ -133,7 +144,7 @@ export function LogHistory({ logs, vehicles, onDelete }: LogHistoryProps) {
                {distanceTraveled !== null && (
                  <div className="pt-3 border-t border-slate-200/50 flex items-center justify-between">
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Jarak Perjalanan Ini</span>
-                    <span className="text-sm font-black text-indigo-600">+{distanceTraveled} KM</span>
+                    <span className="text-sm font-black text-indigo-600">+{distanceTraveled} <span className="text-[10px] font-normal">KM</span></span>
                  </div>
                )}
             </div>
