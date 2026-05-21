@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase, Vehicle } from '../supabase';
-import { Car, Plus, Trash2, Settings, AlertCircle, Loader2, RefreshCw, Gauge } from 'lucide-react';
+import { Car, Plus, Trash2, Settings, AlertCircle, Loader2, RefreshCw, Gauge, Pencil } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 const OdoDisplay = ({ value, className }: { value: number, className?: string }) => {
@@ -22,6 +22,15 @@ export function VehicleManager() {
     name: '',
     plate_number: '',
     current_odo: '',
+    oil_change_interval: '2000'
+  });
+
+  const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
+  const [editForm, setEditForm] = useState({
+    name: '',
+    plate_number: '',
+    current_odo: '',
+    last_oil_change_odo: '',
     oil_change_interval: '2000'
   });
 
@@ -65,6 +74,41 @@ export function VehicleManager() {
     }
   };
 
+  const startEdit = (v: Vehicle) => {
+    setEditingVehicle(v);
+    setIsAdding(false);
+    setEditForm({
+      name: v.name,
+      plate_number: v.plate_number || '',
+      current_odo: v.current_odo.toString(),
+      last_oil_change_odo: v.last_oil_change_odo.toString(),
+      oil_change_interval: v.oil_change_interval.toString()
+    });
+  };
+
+  const handleEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingVehicle) return;
+    try {
+      const { error } = await supabase
+        .from('vehicles')
+        .update({
+          name: editForm.name,
+          plate_number: editForm.plate_number || null,
+          current_odo: parseFloat(editForm.current_odo) || 0,
+          last_oil_change_odo: parseFloat(editForm.last_oil_change_odo) || 0,
+          oil_change_interval: parseFloat(editForm.oil_change_interval) || 2000,
+        })
+        .eq('id', editingVehicle.id);
+
+      if (error) throw error;
+      setEditingVehicle(null);
+      fetchVehicles();
+    } catch (err) {
+      alert('Gagal memperbarui kendaraan.');
+    }
+  };
+
   const handleDelete = async (id: string) => {
     if (!confirm('Hapus kendaraan ini? Semua data log terkait akan ikut terhapus.')) return;
     await supabase.from('vehicles').delete().eq('id', id);
@@ -79,7 +123,10 @@ export function VehicleManager() {
           Pengaturan Kendaraan
         </h2>
         <button 
-          onClick={() => setIsAdding(!isAdding)}
+          onClick={() => {
+            setIsAdding(!isAdding);
+            setEditingVehicle(null);
+          }}
           className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-bold shadow-sm hover:bg-indigo-700 transition-all flex items-center gap-2"
         >
           <Plus className="w-4 h-4" />
@@ -141,6 +188,83 @@ export function VehicleManager() {
         </form>
       )}
 
+      {editingVehicle && (
+        <form onSubmit={handleEdit} className="bg-white p-6 rounded-3xl border border-indigo-200 shadow-md space-y-4 animate-in fade-in slide-in-from-top-4 duration-200">
+          <div className="flex justify-between items-center pb-2 border-b border-slate-100">
+            <h4 className="font-bold text-slate-800 flex items-center gap-2">
+              <Pencil className="w-4 h-4 text-indigo-600" />
+              Edit Kendaraan: <span className="text-indigo-600">{editingVehicle.name}</span>
+            </h4>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-500 uppercase">Nama Kendaraan</label>
+              <input 
+                required
+                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none font-medium text-slate-700"
+                value={editForm.name}
+                onChange={e => setEditForm({...editForm, name: e.target.value})}
+                placeholder="Contoh: Honda Vario"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-500 uppercase">Nomor Plat (Opsional)</label>
+              <input 
+                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none font-medium text-slate-700"
+                value={editForm.plate_number}
+                onChange={e => setEditForm({...editForm, plate_number: e.target.value})}
+                placeholder="Contoh: B 1234 ABC"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-500 uppercase">Odometer Saat Ini (KM)</label>
+              <input 
+                required
+                type="number"
+                step="any"
+                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none font-bold text-slate-700"
+                value={editForm.current_odo}
+                onChange={e => setEditForm({...editForm, current_odo: e.target.value})}
+                placeholder="0.0"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-500 uppercase">Interval Ganti Oli (KM)</label>
+              <input 
+                required
+                type="number"
+                step="any"
+                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none font-bold text-slate-700"
+                value={editForm.oil_change_interval}
+                onChange={e => setEditForm({...editForm, oil_change_interval: e.target.value})}
+                placeholder="2000"
+              />
+            </div>
+            <div className="space-y-1 md:col-span-2">
+              <label className="text-xs font-bold text-indigo-600 uppercase flex items-center gap-1">
+                Odometer Ganti Oli Terakhir (KM)
+              </label>
+              <input 
+                required
+                type="number"
+                step="any"
+                className="w-full px-4 py-3 bg-indigo-50 border border-indigo-100 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none font-bold text-slate-700"
+                value={editForm.last_oil_change_odo}
+                onChange={e => setEditForm({...editForm, last_oil_change_odo: e.target.value})}
+                placeholder="Misal: ganti oli terakhir pada km berapa"
+              />
+              <p className="text-[10px] text-slate-400">
+                Nilai ini menentukan perhitungan "Jarak Sejak Oli" dan sisa kilometer ganti oli.
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <button type="submit" className="flex-1 py-2 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-colors">Simpan Perubahan</button>
+            <button type="button" onClick={() => setEditingVehicle(null)} className="px-6 py-2 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition-colors">Batal</button>
+          </div>
+        </form>
+      )}
+
       {loading ? (
         <div className="flex justify-center py-12"><Loader2 className="w-8 h-8 animate-spin text-indigo-400" /></div>
       ) : vehicles.length === 0 ? (
@@ -167,12 +291,22 @@ export function VehicleManager() {
                       <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">{v.plate_number || 'Tanpa Plat'}</p>
                     </div>
                   </div>
-                  <button 
-                    onClick={() => handleDelete(v.id)}
-                    className="p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                  </button>
+                  <div className="flex gap-1">
+                    <button 
+                      onClick={() => startEdit(v)}
+                      className="p-2 text-slate-300 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
+                      title="Edit Estimasi & Detail"
+                    >
+                      <Pencil className="w-5 h-5" />
+                    </button>
+                    <button 
+                      onClick={() => handleDelete(v.id)}
+                      className="p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"
+                      title="Hapus Kendaraan"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 border-t border-slate-50 pt-4">
